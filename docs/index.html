@@ -2,12 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Collapsible Dropdowns with Editable Tables</title>
+  <title>Editable Excel with Collapsible Dropdowns</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Handsontable -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.js"></script>
+
+  <!-- SheetJS (xlsx) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
     body {
@@ -33,10 +36,27 @@
       max-width: 100%;
       overflow-x: auto;
     }
+
+    #downloadBtn {
+      margin: 20px 0;
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #downloadBtn:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
-  <h1>Nested Collapsible Sections with Editable Excel Tables</h1>
+  <h1>Nested Collapsible Excel Editors</h1>
+
+  <button id="downloadBtn">📥 Download All Excel Data</button>
 
   <details>
     <summary>Finance</summary>
@@ -65,13 +85,12 @@
   </details>
 
   <script>
+    const tables = {};
+
     function createTable(containerId) {
       const container = document.getElementById(containerId);
-      const data = Array.from({ length: 10 }, () =>
-        Array.from({ length: 10 }, () => "")
-      );
-
-      new Handsontable(container, {
+      const data = Array.from({ length: 10 }, () => Array(10).fill(""));
+      const hot = new Handsontable(container, {
         data: data,
         rowHeaders: true,
         colHeaders: Array.from({ length: 10 }, (_, i) => `Col ${i + 1}`),
@@ -79,13 +98,32 @@
         height: 300,
         licenseKey: 'non-commercial-and-evaluation'
       });
+
+      tables[containerId] = hot;
+    }
+
+    function downloadExcelFromHOT(hotInstance, fileName) {
+      const data = hotInstance.getData();
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+      XLSX.writeFile(wb, fileName);
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      // Initialize tables
       createTable("finance-budget");
       createTable("finance-expenses");
       createTable("eng-projects");
       createTable("eng-bugs");
+
+      // Download all tables
+      document.getElementById("downloadBtn").addEventListener("click", () => {
+        for (const [id, hot] of Object.entries(tables)) {
+          const fileName = `${id}.xlsx`;
+          downloadExcelFromHOT(hot, fileName);
+        }
+      });
     });
   </script>
 </body>
