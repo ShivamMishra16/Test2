@@ -1,11 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>GitHub Pages Demo</title>
+  <meta charset="UTF-8">
+  <title>Nested Dropdowns with Editable Excel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Handsontable CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.css" />
+
+  <!-- Handsontable JS -->
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .dropdown-section {
+      margin-bottom: 30px;
+    }
+    .nested {
+      margin-left: 20px;
+    }
+    .sheet-container {
+      margin-top: 20px;
+      max-width: 800px;
+    }
+    .handsontable {
+      overflow-x: auto;
+    }
+  </style>
 </head>
 <body>
-  <h1>Hello from GitHub Pages! 🚀</h1>
-  <p>This is a simple demo hosted using <strong>GitHub Pages</strong>.</p>
-  <p>Click to visit: <a href="https://www.markdownguide.org/">Markdown Guide</a></p>
+
+  <h2>Nested Dropdowns with Editable Excel Sheets</h2>
+
+  <div class="dropdown-section">
+    <label for="mainDropdown">Select Category:</label>
+    <select id="mainDropdown">
+      <option value="">-- Choose --</option>
+      <option value="finance">Finance</option>
+      <option value="engineering">Engineering</option>
+    </select>
+  </div>
+
+  <div class="dropdown-section nested" id="subDropdownSection" style="display: none;">
+    <label for="subDropdown">Select Sub-Category:</label>
+    <select id="subDropdown">
+      <option value="">-- Choose --</option>
+    </select>
+  </div>
+
+  <div id="sheetContainer" class="sheet-container" style="display: none;"></div>
+
+  <script>
+    const mainDropdown = document.getElementById('mainDropdown');
+    const subDropdownSection = document.getElementById('subDropdownSection');
+    const subDropdown = document.getElementById('subDropdown');
+    const sheetContainer = document.getElementById('sheetContainer');
+
+    const subOptions = {
+      finance: ["Budget Planning", "Monthly Expenses"],
+      engineering: ["Project Tracking", "Bug Report"]
+    };
+
+    const tables = {}; // Store Handsontable instances
+
+    mainDropdown.addEventListener('change', function () {
+      const selectedMain = this.value;
+
+      if (selectedMain && subOptions[selectedMain]) {
+        subDropdown.innerHTML = '<option value="">-- Choose --</option>';
+        subOptions[selectedMain].forEach(opt => {
+          const option = document.createElement('option');
+          option.value = opt;
+          option.textContent = opt;
+          subDropdown.appendChild(option);
+        });
+        subDropdownSection.style.display = 'block';
+        sheetContainer.style.display = 'none';
+      } else {
+        subDropdownSection.style.display = 'none';
+        sheetContainer.style.display = 'none';
+      }
+    });
+
+    subDropdown.addEventListener('change', function () {
+      const selectedSub = this.value;
+
+      if (selectedSub) {
+        // Initialize table only if not already created
+        if (!tables[selectedSub]) {
+          const container = document.createElement('div');
+          sheetContainer.innerHTML = ''; // Clear previous
+          sheetContainer.appendChild(container);
+
+          const data = Array.from({ length: 10 }, () =>
+            Array.from({ length: 10 }, () => "")
+          );
+
+          const hot = new Handsontable(container, {
+            data: data,
+            rowHeaders: true,
+            colHeaders: Array.from({ length: 10 }, (_, i) => `Col ${i + 1}`),
+            width: '100%',
+            height: 300,
+            licenseKey: 'non-commercial-and-evaluation' // Required for Handsontable free use
+          });
+
+          tables[selectedSub] = hot;
+        } else {
+          sheetContainer.innerHTML = '';
+          sheetContainer.appendChild(tables[selectedSub].rootElement);
+        }
+
+        sheetContainer.style.display = 'block';
+      } else {
+        sheetContainer.style.display = 'none';
+      }
+    });
+  </script>
 </body>
 </html>
